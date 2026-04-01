@@ -1,14 +1,11 @@
 export default async function handler(req, res) {
-  // Only allow POST requests
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { topic } = req.body;
   const secretKey = process.env.MY_SECRET_API_KEY; 
 
-  // Check if the key exists before even trying to call the AI
   if (!secretKey) {
-    console.error("ERROR: MY_SECRET_API_KEY is missing from Vercel Settings!");
-    return res.status(500).json({ reply: "Configuration error: Missing API Key." });
+    return res.status(500).json({ reply: "Configuration error: Missing API Key in Vercel." });
   }
 
   try {
@@ -21,8 +18,8 @@ export default async function handler(req, res) {
         "X-Title": "Simplifier App"
       },
       body: JSON.stringify({
-        // Using this specific free model for stability
-        model: "meta-llama/llama-3.3-70b-instruct:free", 
+        // Trying Google's incredibly fast and reliable free model
+        model: "google/gemini-2.0-flash-lite-preview-02-05:free", 
         messages: [
           { role: "system", content: "Simplify this topic clearly using an analogy. One paragraph." },
           { role: "user", content: `Simplify: ${topic}` }
@@ -32,14 +29,20 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
+    // If OpenRouter sends an answer, show it!
     if (data.choices && data.choices[0]) {
       res.status(200).json({ reply: data.choices[0].message.content });
-    } else {
-      console.error("OpenRouter Error:", data);
-      res.status(200).json({ reply: "The AI is busy. Please try again!" });
+    } 
+    // If OpenRouter sends an error, PRINT THE EXACT ERROR on the website!
+    else if (data.error && data.error.message) {
+      res.status(200).json({ reply: `OpenRouter says: "${data.error.message}"` });
+    } 
+    // If it's completely broken, print the raw data so we can see it
+    else {
+      res.status(200).json({ reply: `Unknown Error from OpenRouter: ${JSON.stringify(data)}` });
     }
+
   } catch (error) {
-    console.error("Runtime Error:", error);
-    res.status(500).json({ reply: "The server had a hiccup. Try again!" });
+    res.status(500).json({ reply: "The server connection failed entirely." });
   }
 }
