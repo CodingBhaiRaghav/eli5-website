@@ -46,14 +46,28 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ topic })
                 });
+                
+                // This checks if the server crashed completely
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server crashed! Code: ${response.status}. Details: ${errorText.substring(0, 100)}`);
+                }
+
                 const data = await response.json();
                 document.getElementById('loading').style.display = 'none';
+                
+                // Show the answer OR the specific AI error
                 document.getElementById('resTitle').innerText = topic;
-                document.getElementById('resText').innerText = data.reply;
+                document.getElementById('resText').innerText = data.reply || "No reply found.";
                 document.getElementById('result-card').style.display = 'block';
+
             } catch (err) {
-                alert("Something went wrong!");
+                // Print the exact error right on the webpage!
                 document.getElementById('loading').style.display = 'none';
+                document.getElementById('resTitle').innerText = "🚨 Error Found!";
+                document.getElementById('resTitle').style.color = "red";
+                document.getElementById('resText').innerText = err.message;
+                document.getElementById('result-card').style.display = 'block';
             }
         });
     </script>
