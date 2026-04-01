@@ -1,34 +1,40 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELI5 - Explain Like I'm 5</title>
+    <title>Universal Simplifier</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root { --black: #111110; --dark: #1C1C1A; --mid: #2E2E2B; --white: #F0EDE6; --accent: #F2C46D; --border: #3a3a37; }
-        body { background: var(--dark); color: var(--white); font-family: 'Space Grotesk', sans-serif; padding: 2rem; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; text-align: center; }
-        h1 { font-family: 'Syne', sans-serif; margin-bottom: 2rem; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--dark); color: var(--white); font-family: 'Space Grotesk', sans-serif; padding: 2rem; display: flex; justify-content: center; min-height: 100vh;}
+        .container { width: 100%; max-width: 600px; text-align: center; margin-top: 2rem; }
+        h1 { font-family: 'Syne', sans-serif; margin-bottom: 0.5rem; font-size: 2.5rem; }
+        p.subtitle { color: #a0a09a; margin-bottom: 2rem; font-size: 1.1rem; }
         .search-box { display: flex; gap: 10px; margin-bottom: 2rem; }
-        input { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--black); color: white; outline: none; }
-        button { background: var(--accent); border: none; padding: 0 25px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .card { background: var(--mid); padding: 2rem; border-radius: 20px; display: none; text-align: left; border: 1px solid var(--border); }
-        #loading { display: none; margin-top: 1rem; color: var(--accent); }
+        input { flex: 1; padding: 18px 20px; border-radius: 16px; border: 2px solid var(--border); background: var(--black); color: white; outline: none; font-size: 1.1rem; font-family: 'Space Grotesk', sans-serif;}
+        input:focus { border-color: var(--accent); }
+        button { background: var(--accent); border: none; padding: 0 30px; border-radius: 16px; font-weight: bold; cursor: pointer; font-size: 1.1rem; color: var(--black); font-family: 'Syne', sans-serif;}
+        .card { background: var(--mid); padding: 2rem; border-radius: 20px; display: none; text-align: left; border: 1px solid var(--border); line-height: 1.6; font-size: 1.1rem;}
+        #loading { display: none; margin-bottom: 1.5rem; color: var(--accent); font-weight: 500; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Universal Simplifier</h1>
+        <p class="subtitle">Ask me anything, and I'll make it clear.</p>
+
         <form class="search-box" id="askForm">
-            <input type="text" id="topicInput" placeholder="Ask me anything..." required>
-            <button type="submit">Go!</button>
+            <input type="text" id="topicInput" placeholder="e.g., Quantum Mechanics, Black Holes..." required autocomplete="off">
+            <button type="submit">Simplify!</button>
         </form>
-        <div id="loading">✨ Creating a simple answer...</div>
+        
+        <div id="loading">✨ Thinking hard...</div>
+        
         <div id="result-card" class="card">
-            <h2 id="resTitle" style="margin-bottom:10px; color:var(--accent)"></h2>
-            <p>Ask me anything, and I'll make it clear.</p>
+            <h2 id="resTitle" style="margin-bottom:15px; color:var(--accent); font-family: 'Syne', sans-serif;"></h2>
+            <p id="resText"></p>
         </div>
     </div>
 
@@ -36,37 +42,35 @@
         const form = document.getElementById('askForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const topic = document.getElementById('topicInput').value;
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) return;
+            
+            // Show loading text, hide old result
             document.getElementById('loading').style.display = 'block';
             document.getElementById('result-card').style.display = 'none';
+            document.getElementById('resTitle').style.color = "var(--accent)";
 
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic })
+                    body: JSON.stringify({ topic: topic })
                 });
                 
-                // This checks if the server crashed completely
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server crashed! Code: ${response.status}. Details: ${errorText.substring(0, 100)}`);
-                }
-
                 const data = await response.json();
-                document.getElementById('loading').style.display = 'none';
                 
-                // Show the answer OR the specific AI error
+                // Hide loading, show the answer!
+                document.getElementById('loading').style.display = 'none';
                 document.getElementById('resTitle').innerText = topic;
-                document.getElementById('resText').innerText = data.reply || "No reply found.";
+                document.getElementById('resText').innerText = data.reply || "Something is missing in the AI's answer.";
                 document.getElementById('result-card').style.display = 'block';
 
             } catch (err) {
-                // Print the exact error right on the webpage!
+                // If it crashes, show a red error card instead of freezing
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('resTitle').innerText = "🚨 Error Found!";
-                document.getElementById('resTitle').style.color = "red";
-                document.getElementById('resText').innerText = err.message;
+                document.getElementById('resTitle').innerText = "🚨 Connection Error";
+                document.getElementById('resTitle').style.color = "#ff6b6b"; 
+                document.getElementById('resText').innerText = "The website couldn't reach the Vercel server. Try refreshing the page!";
                 document.getElementById('result-card').style.display = 'block';
             }
         });
