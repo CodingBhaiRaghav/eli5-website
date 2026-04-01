@@ -2,7 +2,6 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { topic } = req.body;
-  // We will set this "MY_SECRET_API_KEY" in Vercel later
   const secretKey = process.env.MY_SECRET_API_KEY; 
 
   try {
@@ -13,17 +12,24 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
+        model: "google/gemini-2.0-flash-exp:free", // The 100% free model
         messages: [
-          { role: "system", content: "Explain the topic to a 5-year-old using very simple words and a warm tone. One short paragraph only." },
+          { role: "system", content: "Explain like I'm five. Use simple words. One short paragraph." },
           { role: "user", content: `Explain ${topic}` }
         ]
       })
     });
 
     const data = await response.json();
-    res.status(200).json({ reply: data.choices[0].message.content });
+    
+    // This is the fix! It checks if the AI actually sent a message back.
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      res.status(200).json({ reply: data.choices[0].message.content });
+    } else {
+      console.error("AI Error:", data);
+      res.status(500).json({ reply: "The AI is sleepy right now. Try again!" });
+    }
   } catch (error) {
-    res.status(500).json({ error: "AI connection failed" });
+    res.status(500).json({ reply: "Connection lost!" });
   }
 }
