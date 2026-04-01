@@ -10,36 +10,31 @@ export default async function handler(req, res) {
       headers: {
         "Authorization": `Bearer ${secretKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://vercel.com", // OpenRouter sometimes requires this
-        "X-Title": "ELI5 App"
+        "HTTP-Referer": "https://vercel.com", 
+        "X-Title": "Universal Simplifier"
       },
       body: JSON.stringify({
-  // THIS IS THE SPECIFIC CHANGE
-  model: "meta-llama/llama-3.3-70b-instruct:free", 
-  messages: [
-    { 
-      role: "system", 
-      content: "You are a master of simplification. Take complex topics and explain them clearly using analogies. Be smart and clear, not childish. One short paragraph." 
-    },
-    { role: "user", content: `Simplify this for me: ${topic}` }
-  ]
-});
+        model: "meta-llama/llama-3.3-70b-instruct:free", 
+        messages: [
+          { role: "system", content: "You are a master of simplification. Explain complex topics using analogies. One short paragraph." },
+          { role: "user", content: `Simplify: ${topic}` }
+        ]
+      })
+    });
 
     const data = await response.json();
-    
-    // This part helps us find the error in Vercel Logs
+
+    // NEW FIX: If OpenRouter sends an error, we send that message instead of "undefined"
     if (data.error) {
-        console.error("OpenRouter Error Details:", data.error);
-        return res.status(500).json({ reply: `AI Error: ${data.error.message}` });
+      return res.status(200).json({ reply: `AI Notice: ${data.error.message}` });
     }
 
     if (data.choices && data.choices[0]) {
       res.status(200).json({ reply: data.choices[0].message.content });
     } else {
-      res.status(500).json({ reply: "The AI is silent. Try a different topic!" });
+      res.status(200).json({ reply: "The AI is busy simplifying the world. Try again in 10 seconds!" });
     }
   } catch (error) {
-    console.error("Fetch Error:", error);
-    res.status(500).json({ reply: "Connection failed!" });
+    res.status(200).json({ reply: "Connection slow. Please try again!" });
   }
 }
