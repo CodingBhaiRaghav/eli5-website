@@ -14,13 +14,16 @@ export default async function handler(req, res) {
         "X-Title": "ELI5 App"
       },
       body: JSON.stringify({
-        model: "openrouter/free", // Using a more stable model name
-        messages: [
-          { role: "system", content: "Explain like I am five. One short paragraph." },
-          { role: "user", content: `Explain ${topic}` }
-        ]
-      })
-    });
+  // THIS IS THE SPECIFIC CHANGE
+  model: "meta-llama/llama-3.3-70b-instruct:free", 
+  messages: [
+    { 
+      role: "system", 
+      content: "You are a master of simplification. Take complex topics and explain them clearly using analogies. Be smart and clear, not childish. One short paragraph." 
+    },
+    { role: "user", content: `Simplify this for me: ${topic}` }
+  ]
+});
 
     const data = await response.json();
     
