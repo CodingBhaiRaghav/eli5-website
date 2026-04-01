@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         "X-Title": "ELI5 App"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001", // Using a more stable model name
+        model: "openrouter/free", // Using a more stable model name
         messages: [
           { role: "system", content: "Explain like I am five. One short paragraph." },
           { role: "user", content: `Explain ${topic}` }
