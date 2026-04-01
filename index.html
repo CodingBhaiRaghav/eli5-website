@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELI5 - Explain Like I'm 5</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://js.puter.com/v2/"></script>
+
+  <style>
+    :root {
+      --black: #111110; --dark: #1C1C1A; --mid: #2E2E2B; 
+      --grey: #5A5A56; --lightgrey: #D4D0C8; --white: #F0EDE6; 
+      --accent: #F2C46D; --border: #3a3a37;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--dark); color: var(--lightgrey);
+      font-family: 'Space Grotesk', sans-serif; display: flex;
+      justify-content: center; min-height: 100vh; padding: 2rem; font-size: 18px;
+    }
+    .container { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 2rem; }
+    h1, h2 { font-family: 'Syne', sans-serif; color: var(--white); }
+    header { text-align: center; margin-bottom: 2rem; margin-top: 4rem; }
+    header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .search-box { display: flex; gap: 10px; }
+    input[type="text"] {
+      flex: 1; background: var(--black); border: 2px solid var(--border);
+      color: var(--white); font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.2rem; padding: 18px 24px; border-radius: 16px; outline: none;
+    }
+    button.primary {
+      background: var(--accent); color: var(--black); font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1.1rem; border: none; padding: 0 32px;
+      border-radius: 16px; cursor: pointer;
+    }
+    #loading { display: none; text-align: center; padding: 3rem 0; }
+    #result-container { display: none; }
+    .card { background: var(--mid); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; }
+    .emoji-tone { font-size: 2rem; margin-bottom: 1rem; display: inline-block; }
+    .card h2 { margin-bottom: 1rem; font-size: 1.8rem; }
+    .card p { line-height: 1.6; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <header>
+      <h1>Explain Like I'm 5</h1>
+      <p>Big ideas made tiny and safe.</p>
+    </header>
+
+    <form class="search-box" id="askForm">
+      <input type="text" id="topicInput" placeholder="What do you want to learn about?" required autocomplete="off">
+      <button type="submit" class="primary">Explain!</button>
+    </form>
+
+    <div id="loading">
+      <p>Thinking of a simple way to explain...</p>
+    </div>
+
+    <div id="result-container">
+      <div class="card">
+        <div class="emoji-tone">✨</div>
+        <h2 id="resultTitle">Title</h2>
+        <p id="resultText">Explanation goes here.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('askForm');
+    const input = document.getElementById('topicInput');
+    const loading = document.getElementById('loading');
+    const resultContainer = document.getElementById('result-container');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultText = document.getElementById('resultText');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault(); 
+      const topic = input.value.trim();
+      if(!topic) return;
+
+      // Hide the old answer, show the loading text
+      resultContainer.style.display = 'none';
+      loading.style.display = 'block';
+
+      // This talks to the Free AI!
+      puter.ai.chat(`Explain "${topic}" to me like I am 5 years old. Keep it to one short paragraph.`, {model: 'claude-3-5-sonnet'})
+        .then(response => {
+          // When the AI replies, update the screen
+          loading.style.display = 'none';
+          resultTitle.innerText = topic;
+          resultText.innerText = response.message.content;
+          resultContainer.style.display = 'block';
+        })
+        .catch(error => {
+          loading.style.display = 'none';
+          alert("Oops, something went wrong. Make sure you are connected to the internet!");
+        });
+    });
+  </script>
+</body>
+</html>
