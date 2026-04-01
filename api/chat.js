@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         // Trying Google's incredibly fast and reliable free model
-        model: "qwen/qwen-3.6-plus-preview:free", 
+        model: "openrouter/free", 
         messages: [
           { role: "system", content: "Simplify this topic clearly using an analogy. One paragraph." },
           { role: "user", content: `Simplify: ${topic}` }
