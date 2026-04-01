@@ -9,12 +9,14 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${secretKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://vercel.com", // OpenRouter sometimes requires this
+        "X-Title": "ELI5 App"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free", // The 100% free model
+        model: "google/gemini-2.0-flash-001", // Using a more stable model name
         messages: [
-          { role: "system", content: "Explain like I'm five. Use simple words. One short paragraph." },
+          { role: "system", content: "Explain like I am five. One short paragraph." },
           { role: "user", content: `Explain ${topic}` }
         ]
       })
@@ -22,14 +24,19 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     
-    // This is the fix! It checks if the AI actually sent a message back.
-    if (data.choices && data.choices[0] && data.choices[0].message) {
+    // This part helps us find the error in Vercel Logs
+    if (data.error) {
+        console.error("OpenRouter Error Details:", data.error);
+        return res.status(500).json({ reply: `AI Error: ${data.error.message}` });
+    }
+
+    if (data.choices && data.choices[0]) {
       res.status(200).json({ reply: data.choices[0].message.content });
     } else {
-      console.error("AI Error:", data);
-      res.status(500).json({ reply: "The AI is sleepy right now. Try again!" });
+      res.status(500).json({ reply: "The AI is silent. Try a different topic!" });
     }
   } catch (error) {
-    res.status(500).json({ reply: "Connection lost!" });
+    console.error("Fetch Error:", error);
+    res.status(500).json({ reply: "Connection failed!" });
   }
 }
