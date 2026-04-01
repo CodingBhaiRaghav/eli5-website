@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         // Trying Google's incredibly fast and reliable free model
-        model: "google/gemini-2.0-flash-lite-preview-02-05:free", 
+        model: "qwen/qwen-3.6-plus-preview:free", 
         messages: [
           { role: "system", content: "Simplify this topic clearly using an analogy. One paragraph." },
           { role: "user", content: `Simplify: ${topic}` }
